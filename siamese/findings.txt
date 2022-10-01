@@ -1,0 +1,24 @@
+"That's why I wanted a signal between us,
+so I wouldn't have to shout nonsense words."
+  -  Michael Scarn
+
+SAMPLE RESULTS
+Best so far:
+Same:         0.45
+Different:    0.016
+
+Metrics attempted so far:
+- accuracy 
+- mse 
+- crossentropy 
+- binary_crossentropy (failed)
+
+FINDINGS
+So far, MSE seems to calculate the best loss alongside a working contrastive loss function
+The contrastive loss function took some simplification, but using tensorflow 2.0's latest math functions made it much easier
+    Interestingly enough, using tensorflow's tf.math library to calculate euclidian norm (Dw) and the contrastive loss are slower, but they're producing much better results
+I spent probably 2, 3 hour days doing nothing but trying to tune a model that had a bad loss function!
+Using pre-trained applications from keras.applications is cool, 
+    but I don't think "transfer learning" works when you're trying to transfer learning from imagenet to a letter dataset
+    I may have to submit my ego and pre-train the network on MNIST
+    I really wanted to pull this off without MNIST, so we'll see

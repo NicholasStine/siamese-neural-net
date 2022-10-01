@@ -1,16 +1,7 @@
-
-2. Features in feature_tracker.py need to...
-	a. be clickable
-	b. be combinable
-        i. dropdown menu with all abailable classes
-        ii. propatgate the combine changes to the frame and feature viewer widgets
-        ii. combine method
-            - append to the selected UniqueFeature
-            - remove from the current UniqueFeature
-            - wipe a UniqueFeature when it's empty
-        iii. delete method
-            - remove from UniqueCollection collection
--- DONE --
+-- NON MVP --
+        0. Resize Images (dataset_controller.py)
+            - Input for image size
+            - crop images before storing in the images array
         iv. Change Controls:
             - Save button to confirm changes
                 y. Save button to confirm changes
@@ -18,13 +9,3 @@
             - Cancel button to revert changes
                 y. Cache original state on first change-event 
                 z. Revert to original state on cancel click
-
-
-3. Save button to save all cached features to a siamese dataset
-	a. Consider saving preprocessed images
-		i. Convert to np.array()
-		ii. Resize?
-		iii. save in .pyx, no_pickle=True
-	b. Saved with an acompanying one-hot encodded label
-		i. 0 for same
-		ii. 1 for different

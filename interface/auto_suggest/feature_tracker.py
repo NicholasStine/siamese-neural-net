@@ -75,3 +75,6 @@ def _calculateOverlap(box_a, box_b):
             return 0.00
     except IndexError as err:
         return 0.00
+
+def getAllFeatures():
+    return all_features

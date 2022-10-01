@@ -108,19 +108,6 @@ class SNN(Model):
         # Return the combined terms
         return t1 + t2
 
-        # # # THIS CONTRASTIVE LOSS IS RETURNING 0.6225363 WHEN SAMPLES
-        # # # ARE THE SAME AND 0.5000... WHEN SAMPLES ARE DIFFERENT
-        # # Calculate the Euclidian (simple 2D) distance between the twin outputs of the CNN
-        # diff = result_a_0 - result_b_
-        # dist_square = tfAdd(tfPow(result_a_0, Constant_(2, shape=result_a_0.shape[1_:], dtype='float32')), Ones(result_a_0.shape[1_:]))
-        # dist = tfSqrt(dist_square)
-
-        # # Calculate the contrastive loss using the above calculated distance
-        # c_dist = tfMin((self.margin - dist), Constant(0, shape=dist.shape[1:], dtype='float32'))
-        # loss = label * dist_square + (1 - label) * tfPow(c_dist, Constant(2, shape=result_a_0.shape[1_:], dtype='float32'))
-        # loss = tfSigmoid(tfReduceSum(loss) / 2.0 / Constant(result_a_0.get_shape()._as_list()[1], dtype='float32'))
-        # return loss
-
     # The training step
     # This is where the call and contrastiveLoss methods come together
     def train_step(self, data):
@@ -146,56 +133,6 @@ class SNN(Model):
         return { 'loss': loss, **{m.name: m.result() for m in self.metrics} }
 
 
-# Load the training data
-image_dir = '../tf-autoencoder/graffiti/'
-image_size = 32
-def preprocess(image):
-    image = tf.io.read_file(image)
-    image = tf.io.decode_image(image, channels=3, expand_animations=False)
-    image = tf.cast(image, tf.float32)
-    # image = tf.image.rgb_to_grayscale(image)
-    image = tf.clip_by_value(image, 0, 1)
-    image = tf.image.resize(image, [image_size, image_size])
-    image = tf.reshape(image, shape=(image_size, image_size, 3))
-    return image
-
-paths = [os.path.join(image_dir, image) for image in os.listdir(image_dir) if '.png' in image or '.jpg' in image]
-letter_indicies = {}
-for i, path in enumerate(paths):
-    try:
-        letter_indicies[path[-5:-4]].append(i)
-    except KeyError as err:
-        letter_indicies[path[-5:-4]] = [i]        
-        
-
-combination_depth = 5
-cut_dataset = None
-dataset_size = len(paths)
-if (cut_dataset != None): dataset_size = cut_dataset
-dataset_size = math.ceil(dataset_size * combination_depth)
-raw_images = [preprocess(path) for path in paths]
-print("Dataset Size: ", dataset_size)
-print("Raw_images Size: ", len(raw_images))
-
-train_images = []
-train_labels = []
-
-# Load The full (or clipped) dataset
-for i, left_img in enumerate(raw_images):
-    left_letter = paths[i][-5:-4]
-    for j in range(combination_depth):
-        k = random.randint(0, len(raw_images) - 1) if j % 2 == 0 else random.choice(letter_indicies[left_letter])
-        right_img = raw_images[k]
-        right_letter = paths[k][-5:-4]
-        train_images.append([left_img, right_img])
-        train_labels.append([[0 if left_letter == right_letter else 1]])
-    if (cut_dataset != None and i == cut_dataset - 1):
-        break
-
-print("train_images.length: ", len(train_images))
-train_data = np.full((dataset_size, 2, 32, 32, 3), train_images, dtype='float32')
-train_labels = np.full((dataset_size, 1, 1), train_labels, dtype='float32')
-
 # Load just one or a few images for testing
 # train_labels.append([1.0])
 # train_labels.append([0.0])
@@ -211,17 +148,7 @@ train_labels = np.full((dataset_size, 1, 1), train_labels, dtype='float32')
 #     train_image = Image.fromarray(np.uint8(train_data[i][1] * 255))
 #     train_image.show(title="{0}{1}".format(base_title, '(+)'))
 
-# Compile and Train
-with tf.device('/GPU:0'):
-    snn = SNN()
-    snn.compile(optimizer=Adam(learning_rate=1e-4), metrics=['mse']) # Metrics attempted so far: accuracy | mse | crossentropy | binary_crossentropy (failed)
-    snn.fit(train_data, train_labels, epochs=5, batch_size=1)
 
-    # # Sample the Fully Connected layer
-    for i in range(5):
-        results = snn(train_data[i].reshape(1, 2, 32, 32, 3))
-        print("{0}:\nSample label: {1}".format(i, train_labels[i]))
-        print("Siamese Network Sample Results: ", snn.contrastiveLoss(results[0], results[1], train_labels[i]))
 
     # Testing the same image as a left and right 
     # image pair to verify loss function output
@@ -229,19 +156,3 @@ with tf.device('/GPU:0'):
     # (result_a_1, result_b_1) = snn(train_data[1].reshape(1, 2, 32, 32, 3))
 
     # Link training to Tensor Board
-
-
-# SAMPLE RESULTS
-# Best so far:
-# Same:         0.45
-# Different:    0.016
-
-# FINDINGS
-# So far, MSE seems to calculate the best loss alongside a working contrastive loss function
-# The contrastive loss function took some simplification, but using tensorflow 2.0's latest math functions made it much easier
-    # Interestingly enough, using tensorflow's tf.math library to calculate euclidian norm (Dw) and the contrastive loss are slower, but they're producing much better results
-# I spent probably 2, 3 hour days doing nothing but trying to tune a model that had a bad loss function!
-# Using pre-trained applications from keras.applications is cool, 
-    # but I don't think "transfer learning" works when you're trying to transfer learning from imagenet to a letter dataset
-    # I may have to submit my ego and pre-train the network on MNIST
-    # I really wanted to pull this off without MNIST, so we'll see

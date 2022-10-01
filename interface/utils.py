@@ -17,9 +17,6 @@ class tkPack():
         self.packable = []
 
     def append(self, tk_object, side=None):
-        # Pass if not a tkinter element
-        if (not (isinstance(tk_object, tk.Frame) or isinstance(tk_object, tk.Label) or isinstance(tk_object, tk.Button))): return tk_object
-
         # Add the element to packable[]
         self.packable.append(Packable(tk_object, side))
         return tk_object

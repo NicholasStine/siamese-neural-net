@@ -5,7 +5,8 @@ from tkinter import *
 # selected feature's class in feature_viewer.py
 class ClassSelector():
     def __init__(self, root, relief=SUNKEN):
-        self.frame = Frame(root, relief=relief, borderwidth=3)
+        self.frame = Frame(root, relief=relief, borderwidth=3, width=200, height=200)
+        self.frame.pack_propagate(0)
         
         # Display the editing feature
         self.feature_id = ''
